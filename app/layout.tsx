@@ -9,7 +9,7 @@ import { GeistMono } from "geist/font/mono";
 import TanStackProvider from "@/components/TanStackProvider/TanStackProvider";
 import Header from "@/components/Header/Header";
 import Footer from "@/components/Footer/Footer";
-
+import AuthProvider from "@/components/AuthProvider/AuthProvider"; // ← додано
 
 const roboto = Roboto({
   subsets: ["latin", "cyrillic"],
@@ -17,7 +17,6 @@ const roboto = Roboto({
   display: "swap",
   variable: "--font-roboto",
 });
-
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
@@ -59,14 +58,18 @@ export default function RootLayout({
       <body>
         <TanStackProvider>
           <Header />
-          <main>{children}</main>
-          {modal}
+          {/* AuthProvider перевіряє сесію та захищає приватні маршрути */}
+          <AuthProvider>
+            <main>{children}</main>
+            {modal}
+          </AuthProvider>
           <Footer />
         </TanStackProvider>
       </body>
     </html>
   );
 }
+
 
 
 

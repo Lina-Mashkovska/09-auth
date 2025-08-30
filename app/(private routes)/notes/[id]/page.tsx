@@ -1,7 +1,7 @@
 // app/notes/[id]/page.tsx
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getSingleNote } from "@/lib/api";
+import { getSingleNote } from "@/lib/api/api";
 import NotePreview from "@/components/NotPreview/NotePreview"; 
 import css from "./NoteDetails.module.css"; 
 

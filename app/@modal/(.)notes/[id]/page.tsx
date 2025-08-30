@@ -1,6 +1,6 @@
 // app/@modal/(.)notes/[id]/page.tsx
 import { QueryClient, dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import { getSingleNote } from "@/lib/api";
+import { getSingleNote } from "@/lib/api/api";
 import NotePreview from "./NotePreview.client";
 
 type Params = { id: string };
