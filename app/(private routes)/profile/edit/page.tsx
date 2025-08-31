@@ -1,115 +1,73 @@
-// app/(private-routes)/profile/edit/page.tsx
 "use client";
 
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
-import { isAxiosError } from "axios";
-import css from "./page.module.css";
-import { getMe, updateMe } from "@/lib/api/clientApi";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import css from "./page.module.css"; // скопіюй зі стилів курсу
+import { getSession, updateMe } from "@/lib/api/clientApi";
 
 export default function EditProfilePage() {
   const router = useRouter();
 
-  const [username, setUsername] = useState<string>("");
-  const [email, setEmail] = useState<string>("");
-  const [avatar, setAvatar] = useState<string | null>(null);
+  const { data: user, isLoading } = useQuery({
+    queryKey: ["session"],
+    queryFn: getSession,
+  });
 
-  const [saving, setSaving] = useState<boolean>(false);
-  const [error, setError] = useState<string>("");
+  const { mutateAsync, isPending, error } = useMutation({
+    mutationFn: updateMe,
+    onSuccess: () => router.replace("/profile"),
+  });
 
-  useEffect(() => {
-    let mounted = true;
-
-    (async () => {
-      try {
-        const me = await getMe();
-        if (!mounted) return;
-
-        setUsername(me.username ?? "");
-        setEmail(me.email);
-        setAvatar(me.avatar ?? null);
-      } catch (e: unknown) {
-        const message = isAxiosError(e)
-          ? (e.response?.data as { message?: string } | undefined)?.message ??
-            "Failed to load profile"
-          : "Failed to load profile";
-        setError(message);
-      }
-    })();
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setError("");
-    setSaving(true);
+    const form = new FormData(e.currentTarget);
+    const username = String(form.get("username"));
+    await mutateAsync({ username });
+  }
 
-    try {
-      await updateMe({ username });
-      router.replace("/profile");
-    } catch (e: unknown) {
-      const message = isAxiosError(e)
-        ? (e.response?.data as { message?: string } | undefined)?.message ??
-          "Failed to update profile"
-        : "Failed to update profile";
-      setError(message);
-    } finally {
-      setSaving(false);
-    }
-  };
+  if (isLoading) return <div className={css.mainContent}>Loading...</div>;
 
   return (
     <main className={css.mainContent}>
       <div className={css.profileCard}>
         <h1 className={css.formTitle}>Edit Profile</h1>
 
-        {avatar ? (
-          <Image
-            src={avatar}
-            alt="User Avatar"
-            width={120}
-            height={120}
-            className={css.avatar}
-          />
-        ) : (
-          <div className={css.avatar} aria-label="No avatar" />
-        )}
+        <img
+          src={user?.avatar ?? "avatar"}
+          alt="User Avatar"
+          width={120}
+          height={120}
+          className={css.avatar}
+        />
 
         <form className={css.profileInfo} onSubmit={onSubmit}>
           <div className={css.usernameWrapper}>
             <label htmlFor="username">Username:</label>
             <input
               id="username"
+              name="username"
               type="text"
+              defaultValue={user?.username ?? ""}
               className={css.input}
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
             />
           </div>
 
-          <p>Email: {email}</p>
+          <p>Email: {user?.email ?? "user_email@example.com"}</p>
 
           <div className={css.actions}>
-            <button type="submit" className={css.saveButton} disabled={saving}>
-              {saving ? "Saving…" : "Save"}
+            <button type="submit" className={css.saveButton} disabled={isPending}>
+              Save
             </button>
-            <button
-              type="button"
-              className={css.cancelButton}
-              onClick={() => router.back()}
-            >
+            <button type="button" className={css.cancelButton} onClick={() => router.back()}>
               Cancel
             </button>
           </div>
 
-          {error ? <p className={css.error}>{error}</p> : null}
+          {error ? <p className={css.error}>Failed to save</p> : null}
         </form>
       </div>
     </main>
   );
 }
+
 

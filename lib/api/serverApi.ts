@@ -1,26 +1,28 @@
-// lib/api/serverApi.ts
+import axios from "axios";
 import { cookies } from "next/headers";
-import { api as shared } from "@/lib/api/api";
 import type { User } from "@/types/user";
 
-async function serverHeaders() {
-  const jar = await cookies();          
-  return { Cookie: jar.toString() };
-}
+const baseURL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
+/**
+ * SSR-запит профілю. ПЕРЕДАЄМО куки заголовком Cookie,
+ * щоб /api/users/me зміг ідентифікувати сесію.
+ */
+export async function getMeServer(): Promise<User | null> {
+  const cookieHeader = cookies().toString(); // "a=b; c=d"
 
-export async function sGetSession(): Promise<User | null> {
-  const res = await shared.get("/auth/session", {
-    headers: await serverHeaders(),   
+  const client = axios.create({
+    baseURL,
+    headers: { Cookie: cookieHeader },
+  });
+
+  const res = await client.get<User | null>("/users/me", {
     validateStatus: () => true,
   });
-  return res.data ? (res.data as User) : null;
+
+  return (res.data as User) ?? null;
 }
 
 
-export async function sGetMe(): Promise<User> {
-  const user = await sGetSession();
-  if (!user) throw new Error("No active session");
-  return user;
-}
+
 

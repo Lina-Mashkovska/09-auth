@@ -1,38 +1,42 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import css from "./SignInPage.module.css";
 import { login } from "@/lib/api/clientApi";
 import { useAuthStore } from "@/lib/store/authStore";
-import { isAxiosError } from "axios";
+import { isAxiosError } from "axios";            // ✅
 
 export default function SignInPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const from = searchParams.get("from") ?? "/profile";
+
   const setUser = useAuthStore((s) => s.setUser);
-
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState<string>("");
-  const [loading, setLoading] = useState(false);
 
-  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
-    setLoading(true);
+
+    const form = new FormData(e.currentTarget);
+    const email = String(form.get("email"));
+    const password = String(form.get("password"));
+
     try {
       const user = await login({ email, password });
       setUser(user);
-      router.replace("/profile");
-    } catch (e: unknown) {
-      const message = isAxiosError(e)
-        ? (e.response?.data as { message?: string } | undefined)?.message ?? "Login failed"
-        : "Login failed";
-      setError(message);
-    } finally {
-      setLoading(false);
+      router.replace(from);
+    } catch (err: unknown) {                      // ✅ без any
+      let msg = "Login failed";
+      if (isAxiosError(err)) {
+        msg = (err.response?.data as { message?: string } | undefined)?.message ?? err.message;
+      } else if (err instanceof Error) {
+        msg = err.message;
+      }
+      setError(msg);
     }
-  };
+  }
 
   return (
     <main className={css.mainContent}>
@@ -41,39 +45,25 @@ export default function SignInPage() {
 
         <div className={css.formGroup}>
           <label htmlFor="email">Email</label>
-          <input
-            id="email"
-            type="email"
-            name="email"
-            className={css.input}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+          <input id="email" name="email" type="email" className={css.input} required />
         </div>
 
         <div className={css.formGroup}>
           <label htmlFor="password">Password</label>
-          <input
-            id="password"
-            type="password"
-            name="password"
-            className={css.input}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <input id="password" name="password" type="password" className={css.input} required />
         </div>
 
         <div className={css.actions}>
-          <button type="submit" className={css.submitButton} disabled={loading}>
-            {loading ? "Loading…" : "Log in"}
-          </button>
+          <button type="submit" className={css.submitButton}>Log in</button>
         </div>
 
-        {error ? <p className={css.error}>{error}</p> : null}
+        <p className={css.error}>{error}</p>
       </form>
     </main>
   );
 }
+
+
+
+
 

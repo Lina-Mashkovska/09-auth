@@ -1,7 +1,6 @@
 import Link from "next/link";
 import css from "./Header.module.css";
-import TagsMenu from "../TagsMenu/TagsMenu";
-import AuthNavigation from "../AuthNavigation/AuthNavigation"; 
+import AuthNavigation from "@/components/AuthNavigation/AuthNavigation";
 
 export default function Header() {
   return (
@@ -17,17 +16,14 @@ export default function Header() {
               Home
             </Link>
           </li>
-
-          <li className={css.navigationItem}>
-            <TagsMenu />
-          </li>
-
-          {}
           <AuthNavigation />
         </ul>
       </nav>
     </header>
   );
 }
+
+
+
 
  

@@ -1,48 +1,28 @@
-// middleware.ts
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
+// Публічні сторінки, доступні без авторизації
+const PUBLIC_PATHS = ["/sign-in", "/sign-up"];
+
+const isPublic = (p: string) => PUBLIC_PATHS.includes(p);
 const isPrivate = (p: string) => p.startsWith("/profile") || p.startsWith("/notes");
-const isAuthPath = (p: string) => p === "/sign-in" || p === "/sign-up";
 
-async function hasSession(req: NextRequest): Promise<boolean> {
-  try {
-    const url = new URL("/api/auth/session", req.nextUrl.origin);
-    const res = await fetch(url, {
-      headers: { cookie: req.headers.get("cookie") ?? "" },
-      cache: "no-store",
-    });
-    if (!res.ok) return false;
-    const body = await res.text();
-    return !!body && body.trim() !== "" && body !== "null" && body !== "undefined";
-  } catch {
-    return false;
-  }
-}
-
-export async function middleware(req: NextRequest) {
+export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // пропускаємо статичні та api
-  if (
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/api") ||
-    pathname.startsWith("/favicon") ||
-    pathname.match(/\.(?:png|jpg|jpeg|gif|svg|ico|css|js|txt|webp|woff2?)$/)
-  ) {
-    return NextResponse.next();
-  }
+  // Кука ставиться app/api-роутами (готовими з репо курсу)
+  const hasToken = Boolean(req.cookies.get("accessToken"));
 
-  const authed = await hasSession(req);
-
-  if (!authed && isPrivate(pathname)) {
+  // ❌ Якщо користувач не авторизований і лізе на приватну сторінку — шлемо на /sign-in
+  if (isPrivate(pathname) && !hasToken) {
     const url = req.nextUrl.clone();
     url.pathname = "/sign-in";
-    url.search = "";
+    // щоб після логіну повернути на потрібну сторінку
+    url.searchParams.set("from", pathname);
     return NextResponse.redirect(url);
   }
 
-  if (authed && isAuthPath(pathname)) {
+  // ✅ Якщо авторизований — не пускаємо на публічні /sign-in, /sign-up
+  if (isPublic(pathname) && hasToken) {
     const url = req.nextUrl.clone();
     url.pathname = "/profile";
     return NextResponse.redirect(url);
@@ -51,6 +31,8 @@ export async function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
+// Запускаємо middleware для всіх сторінок (крім статичних/asset файлів)
 export const config = {
-  matcher: ["/profile/:path*", "/notes/:path*", "/sign-in", "/sign-up"],
+  matcher: ["/((?!_next|.*\\..*|favicon.ico|robots.txt|sitemap.xml).*)"],
 };
+

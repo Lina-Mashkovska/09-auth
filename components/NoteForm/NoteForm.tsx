@@ -1,4 +1,3 @@
-// components/NoteForm/NoteForm.tsx
 "use client";
 
 import { useState } from "react";
@@ -8,10 +7,11 @@ import css from "./NoteForm.module.css";
 
 import { useNoteStore } from "@/lib/store/noteStore";
 import { tags, type NoteTag, type NewNote } from "@/types/note";
-import { createNote as createNoteApi } from "@/lib/api/api";
+import { createNote as createNoteApi } from "@/lib/api/clientApi"; // ✅ ФІКС: імпорт з clientApi
+import { isAxiosError } from "axios";
 
 interface NoteFormProps {
-  onClose?: () => void; 
+  onClose?: () => void;
 }
 
 export default function NoteForm({ onClose }: NoteFormProps) {
@@ -19,7 +19,6 @@ export default function NoteForm({ onClose }: NoteFormProps) {
   const qc = useQueryClient();
   const { draft, setDraft, clearDraft } = useNoteStore();
   const [localError, setLocalError] = useState<string | null>(null);
-
 
   const { mutateAsync, isPending, error } = useMutation({
     mutationFn: (payload: NewNote) => createNoteApi(payload),
@@ -56,11 +55,17 @@ export default function NoteForm({ onClose }: NoteFormProps) {
 
     try {
       await mutateAsync(payload);
-    } catch {
-      setLocalError("Не вдалося створити нотатку. Спробуйте ще раз.");
+    } catch (err: unknown) {
+      if (isAxiosError(err)) {
+        const msg = (err.response?.data as { message?: string } | undefined)?.message ?? err.message;
+        setLocalError(msg);
+      } else if (err instanceof Error) {
+        setLocalError(err.message);
+      } else {
+        setLocalError("Не вдалося створити нотатку. Спробуйте ще раз.");
+      }
     }
   };
-
 
   const onCancel = () => {
     if (onClose) onClose();
@@ -130,4 +135,5 @@ export default function NoteForm({ onClose }: NoteFormProps) {
     </form>
   );
 }
+
 
