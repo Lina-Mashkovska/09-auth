@@ -2,7 +2,6 @@ import { api } from "./api";
 import type { User } from "@/types/user";
 import type { Note, NewNote } from "@/types/note";
 
-// ---------- Auth ----------
 export async function login(body: { email: string; password: string }): Promise<User> {
   const { data } = await api.post<User>("/auth/login", body);
   return data;
@@ -27,7 +26,7 @@ export async function updateMe(patch: Partial<User>): Promise<User> {
   return data;
 }
 
-// ---------- Notes ----------
+
 export interface NotesResponse {
   notes: Note[];
   totalPages: number;
@@ -70,7 +69,6 @@ export async function deleteNote(id: string): Promise<Note> {
   const { data } = await api.delete<Note>(`/notes/${id}`);
   return data;
 }
-
 
 
 

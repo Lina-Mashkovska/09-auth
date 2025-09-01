@@ -2,9 +2,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getSingleNote } from "@/lib/api/api";
-import NotePreview from "@/components/NotPreview/NotePreview"; 
-import css from "./NoteDetails.module.css"; 
-
+import NotePreview from "@/components/NotPreview/NotePreview";
+import css from "./NoteDetails.module.css";
 
 export async function generateMetadata(
   { params }: { params: { id: string } }
@@ -14,7 +13,6 @@ export async function generateMetadata(
   try {
     const note = await getSingleNote(params.id);
 
-    
     const plain = (note.content ?? "").replace(/\s+/g, " ").trim();
     const short =
       plain.length > 160 ? `${plain.slice(0, 157)}…` : plain || "Note details";
@@ -41,7 +39,6 @@ export async function generateMetadata(
       },
     };
   } catch {
-   
     const title = "Note not found";
     const description = "Такої нотатки не існує або вона була видалена.";
     return {
@@ -82,5 +79,6 @@ export default async function NoteDetailsPage({
     notFound();
   }
 }
+
 
 

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";                 // ✅ додали
+import Link from "next/link";          
 import css from "./AuthNavigation.module.css";
 import { useAuthStore } from "@/lib/store/authStore";
 import { logout } from "@/lib/api/clientApi";
@@ -12,7 +12,7 @@ export default function AuthNavigation() {
     return (
       <>
         <li className={css.navigationItem}>
-          {/* ✅ prefetch працює на Link */}
+          {}
           <Link href="/profile" prefetch={false} className={css.navigationLink}>
             Profile
           </Link>
@@ -50,4 +50,3 @@ export default function AuthNavigation() {
     </>
   );
 }
-

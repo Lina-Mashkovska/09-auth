@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import css from "./page.module.css"; // скопіюй зі стилів курсу
+import css from "./page.module.css"; 
 import { getMeServer } from "@/lib/api/serverApi";
 
 export const metadata: Metadata = {

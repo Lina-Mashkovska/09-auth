@@ -4,10 +4,7 @@ import type { User } from "@/types/user";
 
 const baseURL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
-/**
- * SSR-запит профілю. ПЕРЕДАЄМО куки заголовком Cookie,
- * щоб /api/users/me зміг ідентифікувати сесію.
- */
+
 export async function getMeServer(): Promise<User | null> {
   const cookieHeader = cookies().toString(); // "a=b; c=d"
 
