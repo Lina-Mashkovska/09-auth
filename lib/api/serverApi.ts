@@ -1,24 +1,47 @@
-import axios from "axios";
 import { cookies } from "next/headers";
 import type { User } from "@/types/user";
-
-const baseURL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
-
+import type { Note } from "@/types/note";
+import { api } from "./api";
+import "server-only";
 
 export async function getMeServer(): Promise<User | null> {
-  const cookieHeader = cookies().toString(); // "a=b; c=d"
+  const cookieStore = await cookies();
+  const cookieHeader = cookieStore.toString(); 
 
-  const client = axios.create({
-    baseURL,
+  const res = await api.get<User | null>("/users/me", {
     headers: { Cookie: cookieHeader },
-  });
-
-  const res = await client.get<User | null>("/users/me", {
     validateStatus: () => true,
   });
 
-  return (res.data as User) ?? null;
+  return res.data ?? null;
 }
+
+
+export async function getNoteServer(id: string): Promise<Note | null> {
+  const cookieStore = await cookies();
+  const cookieHeader = cookieStore.toString();
+
+  const res = await api.get<Note | null>(`/notes/${id}`, {
+    headers: { Cookie: cookieHeader },
+    validateStatus: () => true,
+  });
+
+  return res.data ?? null;
+}
+
+
+export async function checkSession(): Promise<User | null> {
+  const cookieStore = await cookies();
+  const cookieHeader = cookieStore.toString();
+
+  const res = await api.get<User | null>("/auth/session", {
+    headers: { Cookie: cookieHeader },
+    validateStatus: () => true,
+  });
+
+  return res.data ?? null;
+}
+
 
 
 

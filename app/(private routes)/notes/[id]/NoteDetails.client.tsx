@@ -1,64 +1,26 @@
+"use client";
 
-import axios from "axios";
-import type { Note, NewNote } from "@/types/note";
+import { useQuery } from "@tanstack/react-query";
+import { getNoteById } from "@/lib/api/clientApi";
+import css from "./NoteDetails.module.css";
 
-const myKey = process.env.NEXT_PUBLIC_NOTEHUB_TOKEN;
-
-axios.defaults.baseURL = "https://notehub-public.goit.study/api";
-
-if (myKey) {
-  axios.defaults.headers.common["Authorization"] = `Bearer ${myKey}`;
-}
-
-export interface NotesResponse {
-  notes: Note[];
-  totalPages: number;
-}
-
-type GetNotesArgs = {
-  page: number;
-  perPage?: number;
-  search?: string;
-  tag?: string | null; 
-};
-
-export async function getNotes({
-  page,
-  perPage = 12,
-  search = "",
-  tag,
-}: GetNotesArgs): Promise<NotesResponse> {
-
-  const shouldPassTag = !!tag && tag !== "All";
-
-  const response = await axios.get<NotesResponse>("/notes", {
-    params: {
-      page,
-      perPage,
-      ...(search ? { search } : {}),
-      ...(shouldPassTag ? { tag } : {}),
-    },
+export default function NoteDetailsClient({ id }: { id: string }) {
+  const { data: note, isLoading, isError } = useQuery({
+    queryKey: ["note", id],
+    queryFn: () => getNoteById(id),
   });
 
-  return response.data;
+  if (isLoading) return <div className={css.loading}>Loading note…</div>;
+  if (isError || !note) return <div className={css.error}>Failed to load note</div>;
+
+  return (
+    <article className={css.note}>
+      <header className={css.header}>
+        <h1 className={css.title}>{note.title}</h1>
+        <span className={css.tag}>{note.tag}</span>
+      </header>
+      <section className={css.content}>{note.content}</section>
+    </article>
+  );
 }
 
-export const fetchNotes = (args: { page: number; search?: string; perPage?: number; tag?: string | null }) =>
-  getNotes(args);
-
-export async function fetchNoteById(id: string): Promise<Note> {
-  const res = await axios.get<Note>(`/notes/${id}`);
-  return res.data;
-}
-export const getSingleNote = (id: string) => fetchNoteById(id);
-
-export async function createNote(note: NewNote): Promise<Note> {
-  const res = await axios.post<Note>("/notes", note);
-  return res.data;
-}
-export const addNote = createNote;
-
-export async function deleteNote(noteId: string): Promise<Note> {
-  const res = await axios.delete<Note>(`/notes/${noteId}`);
-  return res.data;
-}

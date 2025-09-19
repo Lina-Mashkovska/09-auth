@@ -1,31 +1,32 @@
-// app/notes/[id]/page.tsx
+// app/(private routes)/notes/[id]/page.tsx
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getSingleNote } from "@/lib/api/api";
-import NotePreview from "@/components/NotPreview/NotePreview";
+import { getNoteServer } from "@/lib/api/serverApi";
+import NoteDetailsClient from "./NoteDetails.client";
 import css from "./NoteDetails.module.css";
 
 export async function generateMetadata(
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ): Promise<Metadata> {
+  const { id } = await params;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
   try {
-    const note = await getSingleNote(params.id);
+    const note = await getNoteServer(id);
+    if (!note) throw new Error("not found");
 
     const plain = (note.content ?? "").replace(/\s+/g, " ").trim();
-    const short =
+    const description =
       plain.length > 160 ? `${plain.slice(0, 157)}…` : plain || "Note details";
-
     const title = note.title || "Note details";
 
     return {
       title,
-      description: short,
+      description,
       openGraph: {
         title,
-        description: short,
-        url: `${siteUrl}/notes/${params.id}`,
+        description,
+        url: `${siteUrl}/notes/${id}`,
         siteName: "NoteHub",
         type: "article",
         images: [
@@ -47,7 +48,7 @@ export async function generateMetadata(
       openGraph: {
         title,
         description,
-        url: `${siteUrl}/notes/${params.id}`,
+        url: `${siteUrl}/notes/${id}`,
         siteName: "NoteHub",
         type: "article",
         images: [
@@ -66,19 +67,24 @@ export async function generateMetadata(
 export default async function NoteDetailsPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  try {
-    const note = await getSingleNote(params.id);
-    return (
-      <main className={css.wrapper}>
-        <NotePreview note={note} />
-      </main>
-    );
-  } catch {
+  const { id } = await params;
+
+  // опціонально: швидка перевірка на сервері
+  const note = await getNoteServer(id);
+  if (!note) {
     notFound();
   }
+
+  return (
+    <main className={css.wrapper}>
+      <NoteDetailsClient id={id} />
+    </main>
+  );
 }
+
+
 
 
 

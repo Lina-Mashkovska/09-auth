@@ -2,7 +2,11 @@ import axios from "axios";
 import type { Note, NewNote, NoteTag } from "@/types/note";
 import type { User } from "@/types/user";
 
-const baseURL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
+
+const baseURL =
+  typeof window === "undefined"
+    ? `${process.env.NEXT_PUBLIC_API_URL}/api`
+    : "/api";
 
 export const api = axios.create({
   baseURL,
@@ -26,8 +30,13 @@ export const logout = async (): Promise<void> => {
 };
 
 export const getSession = async (): Promise<User | null> => {
-  const res = await api.get<User | null>("/auth/session", { validateStatus: () => true });
-  return res.data ?? null;
+  try {
+    const res = await api.get<User | null>("/auth/session", { validateStatus: () => true });
+    return res.data ?? null;
+  } catch {
+   
+    return null;
+  }
 };
 
 // ---------- Notes ----------
@@ -41,7 +50,7 @@ export const getSingleNote = async (id: string): Promise<Note> => {
   return res.data;
 };
 
-// список нотаток
+
 export interface NotesResponse {
   notes: Note[];
   totalPages: number;
@@ -73,6 +82,7 @@ export const deleteNote = async (id: string): Promise<Note> => {
   const res = await api.delete<Note>(`/notes/${id}`);
   return res.data;
 };
+
 
 
 

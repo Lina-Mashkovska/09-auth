@@ -6,8 +6,8 @@ type AuthState = {
   user: User | null;
   isAuthenticated: boolean;
   setUser: (u: User | null) => void;
-  clearIsAuthenticated: () => void;
-  clearAuth: () => void;              // ← додали
+  clearIsAuthenticated: () => void; 
+  clearAuth: () => void;           
 };
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -15,6 +15,6 @@ export const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: false,
   setUser: (u) => set({ user: u, isAuthenticated: !!u }),
   clearIsAuthenticated: () => set({ user: null, isAuthenticated: false }),
-  clearAuth: () => set({ user: null, isAuthenticated: false }), // ← аліас
+  clearAuth: () => set({ user: null, isAuthenticated: false }), 
 }));
 

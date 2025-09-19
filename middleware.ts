@@ -1,37 +1,58 @@
-import { NextResponse, type NextRequest } from "next/server";
-
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { cookies } from "next/headers";
 
 const PUBLIC_PATHS = ["/sign-in", "/sign-up"];
+const PROTECTED_PATHS = ["/profile", "/notes"];
 
-const isPublic = (p: string) => PUBLIC_PATHS.includes(p);
-const isPrivate = (p: string) => p.startsWith("/profile") || p.startsWith("/notes");
+export async function middleware(req: NextRequest) {
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("accessToken")?.value;
+  const refreshToken = cookieStore.get("refreshToken")?.value;
 
-export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  const isPublicPath = PUBLIC_PATHS.some((path) => pathname.startsWith(path));
+  const isProtectedPath = PROTECTED_PATHS.some((path) => pathname.startsWith(path));
 
-  const hasToken = Boolean(req.cookies.get("accessToken"));
-
-
-  if (isPrivate(pathname) && !hasToken) {
-    const url = req.nextUrl.clone();
-    url.pathname = "/sign-in";
-
-    url.searchParams.set("from", pathname);
-    return NextResponse.redirect(url);
+  if (isPublicPath && accessToken) {
+    return NextResponse.redirect(new URL("/profile", req.url));
   }
 
-  
-  if (isPublic(pathname) && hasToken) {
-    const url = req.nextUrl.clone();
-    url.pathname = "/profile";
-    return NextResponse.redirect(url);
+  if (isProtectedPath) {
+    if (accessToken) {
+      return NextResponse.next();
+    }
+
+    if (refreshToken) {
+      try {
+        const refreshRes = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh`,
+          {
+            method: "POST",
+            credentials: "include",
+          }
+        );
+
+        if (refreshRes.ok) {
+          return NextResponse.next();
+        }
+      } catch (err) {
+        console.error("Middleware refresh error:", err);
+      }
+    }
+
+    return NextResponse.redirect(new URL("/sign-in", req.url));
   }
 
   return NextResponse.next();
 }
 
-
 export const config = {
-  matcher: ["/((?!_next|.*\\..*|favicon.ico|robots.txt|sitemap.xml).*)"],
+  matcher: [
+    "/profile/:path*",
+    "/notes/:path*",
+    "/sign-in",
+    "/sign-up",
+  ],
 };
