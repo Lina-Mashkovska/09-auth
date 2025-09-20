@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import type { User } from "@/types/user";
 import type { Note } from "@/types/note";
 import { api } from "./api";
+import type { AxiosResponse } from "axios";
 import "server-only";
 
 // ---------- Users ----------
@@ -48,17 +49,15 @@ export async function getNotes(params: {
 }
 
 // ---------- Session ----------
-export async function checkSession(): Promise<User | null> {
-  const cookieStore = await cookies();
-  const cookieHeader = cookieStore.toString();
-
-  const res = await api.get<User | null>("/auth/session", {
+export async function checkSession(
+  cookieHeader: string
+): Promise<AxiosResponse<User | null>> {
+  return api.get<User | null>("/auth/session", {
     headers: { Cookie: cookieHeader },
     validateStatus: () => true,
   });
-
-  return res.data ?? null;
 }
+
 
 
 

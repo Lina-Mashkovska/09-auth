@@ -2,14 +2,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkSession } from "@/lib/api/serverApi";
 
-// публічні та приватні маршрути
+
 const PUBLIC_PATHS = ["/sign-in", "/sign-up"];
 const PROTECTED_PATHS = ["/profile", "/notes", "/notes/filter"];
 
 const isPublicPath = (p: string) => PUBLIC_PATHS.some((x) => p.startsWith(x));
 const isProtectedPath = (p: string) => PROTECTED_PATHS.some((x) => p.startsWith(x));
 
-// Дістаємо масив set-cookie із заголовків відповіді (без any)
+
 function extractSetCookies(headers: unknown): string[] {
   if (typeof headers !== "object" || headers === null) return [];
   const raw = (headers as Record<string, unknown>)["set-cookie"];
@@ -24,14 +24,14 @@ function extractSetCookies(headers: unknown): string[] {
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // куки беремо з запиту (edge-safe)
+
   const cookieHeader = req.headers.get("cookie") ?? "";
 
   let isAuthenticated = false;
   let setCookieHeaders: string[] = [];
 
   try {
-    // checkSession повертає ПОВНИЙ AxiosResponse<User | null>
+    // ✅ checkSession тепер приймає cookieHeader як аргумент
     const resp = await checkSession(cookieHeader);
     isAuthenticated = Boolean(resp.data);
     setCookieHeaders = extractSetCookies(resp.headers);
@@ -39,7 +39,7 @@ export async function middleware(req: NextRequest) {
     isAuthenticated = false;
   }
 
-  // неавторизований → приватні сторінки → редірект на /sign-in
+  
   if (!isAuthenticated && isProtectedPath(pathname)) {
     const url = req.nextUrl.clone();
     url.pathname = "/sign-in";
@@ -48,7 +48,7 @@ export async function middleware(req: NextRequest) {
     return res;
   }
 
-  // авторизований → публічні сторінки → редірект на головну (/)
+
   if (isAuthenticated && isPublicPath(pathname)) {
     const url = req.nextUrl.clone();
     url.pathname = "/";
@@ -57,7 +57,6 @@ export async function middleware(req: NextRequest) {
     return res;
   }
 
-  // пропускаємо далі + прокидуємо можливі оновлені куки
   const res = NextResponse.next();
   for (const c of setCookieHeaders) res.headers.append("set-cookie", c);
   return res;
@@ -66,6 +65,7 @@ export async function middleware(req: NextRequest) {
 export const config = {
   matcher: ["/profile/:path*", "/notes/:path*", "/sign-in", "/sign-up"],
 };
+
 
 
 
