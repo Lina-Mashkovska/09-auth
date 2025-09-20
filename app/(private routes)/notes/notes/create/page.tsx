@@ -7,7 +7,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import css from "@/components/NoteForm/NoteForm.module.css";
 import { useNoteStore } from "@/lib/store/noteStore";
 import { tags, type NoteTag, type NewNote } from "@/types/note";
-import { createNote as createNoteApi } from "@/lib/api/api";
+import { createNote as createNoteApi } from "@/lib/api/clientApi";
 
 interface NoteFormProps {
   onClose?: () => void; 
