@@ -1,10 +1,8 @@
-// lib/api/serverApi.ts
-import "server-only";
 import { cookies } from "next/headers";
-import type { AxiosResponse } from "axios";
-import { api } from "./api";
 import type { User } from "@/types/user";
 import type { Note } from "@/types/note";
+import { api } from "./api";
+import "server-only";
 
 // ---------- Users ----------
 export async function getMeServer(): Promise<User | null> {
@@ -32,16 +30,35 @@ export async function getNoteServer(id: string): Promise<Note | null> {
   return res.data ?? null;
 }
 
-// ---------- Session ----------
-export async function checkSession(
-  cookieHeader: string
-): Promise<AxiosResponse<User | null>> {
-  return api.get<User | null>("/auth/session", {
+export async function getNotes(params: {
+  page: number;
+  search?: string;
+  tag?: string | null;
+}): Promise<{ notes: Note[]; totalPages: number }> {
+  const cookieStore = await cookies();
+  const cookieHeader = cookieStore.toString();
+
+  const res = await api.get<{ notes: Note[]; totalPages: number }>("/notes", {
+    params,
     headers: { Cookie: cookieHeader },
     validateStatus: () => true,
   });
+
+  return res.data;
 }
 
+// ---------- Session ----------
+export async function checkSession(): Promise<User | null> {
+  const cookieStore = await cookies();
+  const cookieHeader = cookieStore.toString();
+
+  const res = await api.get<User | null>("/auth/session", {
+    headers: { Cookie: cookieHeader },
+    validateStatus: () => true,
+  });
+
+  return res.data ?? null;
+}
 
 
 

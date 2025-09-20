@@ -2,7 +2,7 @@
 import type { Metadata } from "next";
 import { QueryClient, dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import NotesClient from "./Notes.client";
-import { getNotes } from "@/lib/api/clientApi";
+import { getNotes } from "@/lib/api/serverApi";
 import { tags, type NoteTag } from "@/types/note";
 
 export const dynamic = "force-dynamic";
@@ -85,7 +85,7 @@ export default async function NotesFilterPage({
   const qc = new QueryClient();
   await qc.prefetchQuery({
     queryKey: ["notes", { page, search, tag: tag ?? null }],
-    queryFn: () => getNotes({ page, search, tag }),
+    queryFn: () => getNotes({ page, search, tag }), // 🔹 тепер з serverApi
   });
 
   return (
@@ -94,6 +94,7 @@ export default async function NotesFilterPage({
     </HydrationBoundary>
   );
 }
+
 
 
 
