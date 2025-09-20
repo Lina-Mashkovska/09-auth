@@ -82,7 +82,3 @@ export async function deleteNote(id: string): Promise<Note> {
   const res = await api.delete<Note>(`/notes/${id}`);
   return res.data;
 }
-
-
-
-

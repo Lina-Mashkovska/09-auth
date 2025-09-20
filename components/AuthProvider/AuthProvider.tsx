@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { getSession, logout } from "@/lib/api/api";
+import { getSession, logout } from "@/lib/api/clientApi";
 import { useAuthStore } from "@/lib/store/authStore";
 
 const PRIVATE = ["/profile", "/notes"];
@@ -33,5 +33,14 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   if (checking) return <div style={{ padding: 16 }}>Loading…</div>;
   return <>{children}</>;
 }
+
+
+
+
+
+
+
+
+
 
 

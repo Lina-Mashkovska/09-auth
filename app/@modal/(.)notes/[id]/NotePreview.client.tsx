@@ -1,8 +1,9 @@
+// app/@modal/(.)notes/[id]/NotePreview.client.tsx
 "use client";
 
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { getSingleNote } from "@/lib/api/api";
+import { getNoteById } from "@/lib/api/clientApi"; // ← було getSingleNote з ./api
 import type { Note } from "@/types/note";
 import Modal from "@/components/Modal/Modal";
 import css from "./NotePreview.module.css";
@@ -14,8 +15,7 @@ export default function NotePreview({ id }: Props) {
 
   const { data: note, isLoading, isError } = useQuery<Note>({
     queryKey: ["note", id],
-    queryFn: () => getSingleNote(id),
-   
+    queryFn: () => getNoteById(id), // ← викликаємо клієнтську функцію
     refetchOnMount: false,
   });
 
@@ -49,5 +49,7 @@ export default function NotePreview({ id }: Props) {
     </Modal>
   );
 }
+
+
 
 

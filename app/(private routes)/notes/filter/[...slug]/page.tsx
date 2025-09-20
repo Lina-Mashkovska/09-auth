@@ -2,7 +2,7 @@
 import type { Metadata } from "next";
 import { QueryClient, dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import NotesClient from "./Notes.client";
-import { getNotes } from "@/lib/api/api";
+import { getNotes } from "@/lib/api/clientApi";
 import { tags, type NoteTag } from "@/types/note";
 
 export const dynamic = "force-dynamic";
