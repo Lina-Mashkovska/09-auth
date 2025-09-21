@@ -21,20 +21,17 @@ export async function logout(): Promise<void> {
 export async function getSession(): Promise<User | null> {
   try {
     const res = await api.get<User | null>("/auth/session", { validateStatus: () => true });
-    return res.data ?? null;
+    // ✅ важливо: сесія валідна ТІЛЬКИ коли status === 200 і є дані
+    return res.status === 200 && res.data ? res.data : null;
   } catch {
     return null;
   }
 }
 
-
 export async function getMe(): Promise<User | null> {
   try {
-    const res = await api.get<User>("/users/me", {
-      validateStatus: () => true, 
-    });
-    if (res.status === 200 && res.data) return res.data;
-    return null; 
+    const res = await api.get<User>("/users/me", { validateStatus: () => true });
+    return res.status === 200 && res.data ? res.data : null;
   } catch {
     return null;
   }
@@ -55,7 +52,7 @@ export async function getNotes(params: {
   page: number;
   perPage?: number;
   search?: string;
-  tag?: string | undefined; 
+  tag?: string | undefined;
 }): Promise<NotesResponse> {
   const { page, perPage = 12, search = "", tag } = params;
   const query: Record<string, string | number> = { page, perPage };
