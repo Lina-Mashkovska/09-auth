@@ -8,51 +8,45 @@ import css from "./AuthNavigation.module.css";
 
 export default function AuthNavigation() {
   const router = useRouter();
-  const { user, isAuthenticated, clearIsAuthenticated } = useAuthStore();
+  const { user, clearIsAuthenticated } = useAuthStore();
+  const authed = !!user; // ← єдина істина для рендера
 
   const handleLogout = async () => {
-    try {
-      await logout();
-      clearIsAuthenticated();
-      router.replace("/sign-in"); 
-    } catch (err) {
-      console.error("Logout failed", err);
-    }
+    await logout().catch(() => {});
+    clearIsAuthenticated();
+    router.replace("/sign-in");
   };
 
-  return (
+
+  return authed ? (
     <>
-      {isAuthenticated && user ? (
-        <>
-          <li className={css.navigationItem}>
-            <Link href="/profile" prefetch={false} className={css.navigationLink}>
-              Profile
-            </Link>
-          </li>
-          <li className={css.navigationItem}>
-            <p className={css.userEmail}>{user.email}</p>
-            <button onClick={handleLogout} className={css.logoutButton}>
-              Logout
-            </button>
-          </li>
-        </>
-      ) : (
-        <>
-          <li className={css.navigationItem}>
-            <Link href="/sign-in" prefetch={false} className={css.navigationLink}>
-              Login
-            </Link>
-          </li>
-          <li className={css.navigationItem}>
-            <Link href="/sign-up" prefetch={false} className={css.navigationLink}>
-              Sign up
-            </Link>
-          </li>
-        </>
-      )}
+      <li className={css.navigationItem}>
+        <Link href="/profile" prefetch={false} className={css.navigationLink}>
+          Profile
+        </Link>
+      </li>
+      <li className={css.navigationItem}>
+        <button onClick={handleLogout} className={css.logoutButton}>
+          Logout
+        </button>
+      </li>
+    </>
+  ) : (
+    <>
+      <li className={css.navigationItem}>
+        <Link href="/sign-in" prefetch={false} className={css.navigationLink}>
+          Login
+        </Link>
+      </li>
+      <li className={css.navigationItem}>
+        <Link href="/sign-up" prefetch={false} className={css.navigationLink}>
+          Sign up
+        </Link>
+      </li>
     </>
   );
 }
+
 
 
 
